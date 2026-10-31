@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
-import helmet from 'helmet';
+import helmetModule from 'helmet';
+import type { RequestHandler } from 'express';
 import { pinoHttp } from 'pino-http';
 import { env } from './config/env.js';
 import { logger } from './lib/logger.js';
@@ -13,6 +14,9 @@ import { catalog } from './routes/catalog.js';
 import { bookings } from './routes/bookings.js';
 import { pro } from './routes/pro.js';
 import { admin } from './routes/admin.js';
+
+// Some helmet type builds describe the default export as a module namespace; this works with either shape.
+const helmet = ((helmetModule as unknown as { default?: unknown }).default ?? helmetModule) as () => RequestHandler;
 
 export function createApp() {
   const app = express();
