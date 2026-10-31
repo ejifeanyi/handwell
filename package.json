@@ -1,0 +1,9 @@
+{
+  "name": "handwell",
+  "private": true,
+  "workspaces": ["apps/*"],
+  "scripts": {
+    "api": "npm run dev -w apps/api",
+    "test": "npm run test -w apps/api"
+  }
+}

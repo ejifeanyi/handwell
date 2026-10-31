@@ -1,0 +1,22 @@
+# Render Blueprint for the Handwell API. The web app is deployed separately on Vercel.
+services:
+  - type: web
+    name: handwell-api
+    runtime: node
+    plan: starter            # free plans sleep after 15 minutes idle; starter keeps the demo instantly responsive
+    region: ohio
+    buildCommand: npm install --include=dev && npm run db:generate -w apps/api && npm run build -w apps/api
+    startCommand: npm run start -w apps/api
+    healthCheckPath: /health
+    envVars:
+      - { key: NODE_VERSION, value: "22" }
+      - { key: NODE_ENV, value: production }
+      - { key: PLATFORM_FEE_BPS, value: "1500" }
+      - { key: APP_URL, sync: false }              # https://your-app.vercel.app
+      - { key: CORS_ORIGIN, sync: false }          # same value as APP_URL
+      - { key: DATABASE_URL, sync: false }
+      - { key: DIRECT_URL, sync: false }
+      - { key: SUPABASE_URL, sync: false }
+      - { key: SUPABASE_JWT_SECRET, sync: false }
+      - { key: STRIPE_SECRET_KEY, sync: false }
+      - { key: STRIPE_WEBHOOK_SECRET, sync: false } # one or two whsec_ values, comma separated

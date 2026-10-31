@@ -1,0 +1,4 @@
+import type { BookingStatus } from '@/lib/types';
+export interface Stats { gmvCents: number; feesCents: number; bookings: number; completed: number; activePros: number; pendingPros: number; last30Days: { date: string; gmvCents: number }[] }
+export interface AdminPro { id: string; slug: string; status: 'PENDING' | 'APPROVED' | 'SUSPENDED'; headline: string; bio: string; city: string; yearsExperience: number; createdAt: string; user: { name: string; email: string }; category: { name: string }; services: { id: string; name: string; priceCents: number }[] }
+export interface AdminBooking { id: string; startsAt: string; priceCents: number; feeCents: number; status: BookingStatus; payoutTransferId: string | null; customer: { name: string }; pro: { user: { name: string } }; service: { name: string } }

@@ -1,0 +1,156 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  CUSTOMER
+  PRO
+  ADMIN
+}
+
+enum ProStatus {
+  PENDING
+  APPROVED
+  SUSPENDED
+}
+
+enum BookingStatus {
+  PENDING_PAYMENT
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id        String   @id @db.Uuid // equals the Supabase auth user id
+  email     String   @unique
+  name      String
+  role      Role     @default(CUSTOMER)
+  createdAt DateTime @default(now())
+
+  proProfile ProProfile?
+  bookings   Booking[]   @relation("CustomerBookings")
+  reviews    Review[]
+}
+
+model Category {
+  id    String @id @default(uuid()) @db.Uuid
+  slug  String @unique
+  name  String
+  icon  String
+  pros  ProProfile[]
+}
+
+model ProProfile {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @unique @db.Uuid
+  slug            String    @unique
+  headline        String
+  bio             String
+  city            String
+  timezone        String    @default("America/New_York")
+  yearsExperience Int       @default(1)
+  status          ProStatus @default(PENDING)
+  categoryId      String    @db.Uuid
+  ratingAvg       Float     @default(0)
+  reviewCount     Int       @default(0)
+  stripeAccountId String?   @unique
+  payoutsEnabled  Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category       @relation(fields: [categoryId], references: [id])
+  services Service[]
+  windows  AvailabilityWindow[]
+  bookings Booking[]
+
+  @@index([categoryId, status])
+  @@index([city])
+}
+
+model Service {
+  id          String  @id @default(uuid()) @db.Uuid
+  proId       String  @db.Uuid
+  name        String
+  description String
+  priceCents  Int
+  durationMin Int
+  active      Boolean @default(true)
+
+  pro      ProProfile @relation(fields: [proId], references: [id], onDelete: Cascade)
+  bookings Booking[]
+
+  @@index([proId])
+}
+
+// Weekly recurring hours, in the pro's timezone. weekday: 0 = Sunday ... 6 = Saturday
+model AvailabilityWindow {
+  id          String @id @default(uuid()) @db.Uuid
+  proId       String @db.Uuid
+  weekday     Int
+  startMinute Int // minutes after local midnight
+  endMinute   Int
+
+  pro ProProfile @relation(fields: [proId], references: [id], onDelete: Cascade)
+
+  @@index([proId, weekday])
+}
+
+model Booking {
+  id                    String        @id @default(uuid()) @db.Uuid
+  customerId            String        @db.Uuid
+  proId                 String        @db.Uuid
+  serviceId             String        @db.Uuid
+  startsAt              DateTime
+  endsAt                DateTime
+  address               String
+  notes                 String?
+  priceCents            Int
+  feeCents              Int
+  status                BookingStatus @default(PENDING_PAYMENT)
+  expiresAt             DateTime? // unpaid holds release after this time
+  checkoutSessionId     String?       @unique
+  paymentIntentId       String?       @unique
+  completedAt           DateTime?
+  payoutTransferId      String?       @unique
+  payoutReleasedAt      DateTime?
+  cancelledAt           DateTime?
+  createdAt             DateTime      @default(now())
+
+  customer User       @relation("CustomerBookings", fields: [customerId], references: [id])
+  pro      ProProfile @relation(fields: [proId], references: [id])
+  service  Service    @relation(fields: [serviceId], references: [id])
+  review   Review?
+
+  @@index([proId, startsAt])
+  @@index([customerId])
+  @@index([status])
+}
+
+model Review {
+  id         String   @id @default(uuid()) @db.Uuid
+  bookingId  String   @unique @db.Uuid
+  customerId String   @db.Uuid
+  proId      String   @db.Uuid
+  rating     Int
+  body       String
+  createdAt  DateTime @default(now())
+
+  booking  Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  customer User    @relation(fields: [customerId], references: [id])
+
+  @@index([proId, createdAt])
+}
+
+// Stripe retries webhooks; storing event ids makes handlers idempotent.
+model WebhookEvent {
+  id          String   @id
+  type        String
+  processedAt DateTime @default(now())
+}
