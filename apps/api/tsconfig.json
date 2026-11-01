@@ -12,5 +12,5 @@
     "rootDir": ".",
     "types": ["node"]
   },
-  "include": ["src", "tests", "prisma/seed.ts", "vitest.config.ts"]
+  "include": ["index.ts", "src", "tests", "prisma/seed.ts", "vitest.config.ts"]
 }
