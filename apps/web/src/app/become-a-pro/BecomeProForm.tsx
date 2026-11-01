@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { useAction, useRequest } from '@/lib/useRequest';
+import { useAuth } from '@/lib/auth';
 import type { Category } from '@/lib/types';
 import { Select } from '@/components/Select';
 import { Button, ButtonLink, Card, Field, Notice, TextArea, Loading } from '@/components/ui';
@@ -12,6 +13,7 @@ export function BecomeProForm() {
   const [done, setDone] = useState(false);
   const [f, setF] = useState({ categorySlug: '', headline: '', bio: '', city: 'Columbus', years: '3', service: '', description: '', price: '120', minutes: '60' });
   const act = useAction();
+  const { refresh } = useAuth();
   useEffect(() => { api<{ categories: Category[] }>('/categories').then((r) => { setCats(r.categories); setF((x) => ({ ...x, categorySlug: r.categories[0]?.slug ?? '' })); }).catch(() => {}); }, []);
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => setF({ ...f, [k]: e.target.value });
 
@@ -22,7 +24,7 @@ export function BecomeProForm() {
       services: [{ name: f.service, description: f.description, priceCents: Math.round(Number(f.price) * 100), durationMin: Number(f.minutes) }],
       windows: [1, 2, 3, 4, 5].map((weekday) => ({ weekday, startMinute: 540, endMinute: 1020 })),
     });
-    if (r) setDone(true);
+    if (r) { await refresh(); setDone(true); }
   }
 
   if (busy && !user) return <Loading />;

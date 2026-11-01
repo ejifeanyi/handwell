@@ -12,6 +12,8 @@ interface AuthState {
   signUp: (name: string, email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
+  updateName: (name: string) => Promise<void>;
+  changePassword: (password: string) => Promise<void>;
 }
 const Ctx = createContext<AuthState | null>(null);
 
@@ -48,6 +50,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!data.session) throw new Error('Check your email to confirm your account, then sign in.');
     },
     async signOut() { await supabase.auth.signOut(); },
+    async updateName(name) {
+      const r = await api<{ user: SessionUser }>('/me', { method: 'PATCH', body: { name }, token });
+      setUser(r.user);
+    },
+    async changePassword(password) {
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) throw new Error(error.message);
+    },
     async refresh() { const { data } = await supabase.auth.getSession(); await load(data.session?.access_token ?? null); },
   }), [user, token, loading, load]);
 

@@ -55,8 +55,9 @@ export function Header() {
                 <div role="menu" className="page-in absolute right-0 top-14 z-20 w-60 rounded-2xl border border-line bg-white p-2 shadow-card">
                   <div className="border-b border-line px-3 pb-3 pt-2"><p className="text-sm font-semibold">{user.name}</p><p className="truncate text-xs text-ink-soft">{user.email}</p></div>
                   <div className="pt-2">
-                    <MenuLink href="/bookings">My bookings</MenuLink>
-                    {user.role === 'PRO' && <MenuLink href="/pro">Pro dashboard</MenuLink>}
+                    <MenuLink href="/account">Account</MenuLink>
+                    {user.role === 'CUSTOMER' && <MenuLink href="/bookings">My bookings</MenuLink>}
+                    {user.role === 'PRO' && <><MenuLink href="/pro">Pro dashboard</MenuLink><MenuLink href="/bookings">My bookings</MenuLink></>}
                     {user.role === 'ADMIN' && <MenuLink href="/admin">Admin dashboard</MenuLink>}
                     {user.role === 'CUSTOMER' && <MenuLink href="/become-a-pro">Become a pro</MenuLink>}
                     <button role="menuitem" onClick={async () => { await signOut(); router.push('/'); }} className="w-full rounded-xl px-3 py-2.5 text-left text-sm font-medium text-danger hover:bg-danger-tint">Sign out</button>
@@ -81,6 +82,7 @@ export function Header() {
             {items.map(([href, label]) => (
               <li key={href}><Link href={href} className={`flex items-center justify-between border-b border-line py-4 text-lg ${active(href) ? 'font-semibold text-pine' : 'font-medium'}`}>{label}<Icon name="right" size={18} className="text-ink-soft" /></Link></li>
             ))}
+            {user && <li><Link href="/account" className="flex items-center justify-between border-b border-line py-4 text-lg font-medium">Account<Icon name="right" size={18} className="text-ink-soft" /></Link></li>}
             {!user && !loading && <li><Link href="/sign-in" className="flex items-center justify-between py-4 text-lg font-medium">Sign in<Icon name="right" size={18} className="text-ink-soft" /></Link></li>}
           </ul>
         </nav>

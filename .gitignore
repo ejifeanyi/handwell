@@ -8,3 +8,4 @@ dist
 *.timestamp-*.mjs
 tsconfig.tsbuildinfo
 next-env.d.ts
+.mac.md5
